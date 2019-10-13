@@ -15,7 +15,10 @@ const MOVIEDATA = require('./movies-data-small.json');
 
 const app = express();
 
-app.use(morgan('common'));
+// change morgan logging setting to 'tiny' when hosted
+const morganSetting = process.env.NODE_ENV === 'production' ? 'tiny' : 'common';
+app.use(morgan(morganSetting));
+
 app.use(helmet());
 app.use(cors());
 
@@ -39,7 +42,6 @@ app.use(function validateBearerToken(req, res, next) {
 });
 
 function handleGetMovie(req, res) {
-
 	// by default will return ALL movies
 	let response = MOVIEDATA;
 
@@ -71,21 +73,30 @@ function handleGetMovie(req, res) {
 				Number(movie.avg_vote) >= Number(avg_vote)
 		);
 	}
-	
-	
+
 	if (sort) {
 		response.sort((a, b) => {
 			return a[sort] > b[sort] ? 1 : a[sort] < b[sort] ? -1 : 0;
 		});
 	}
 
-
 	res.json(response);
 }
 app.get('/movie', handleGetMovie);
 
-const PORT = 8000;
-
-app.listen(PORT, () => {
-	console.log(`Server listening at http://localhost:${PORT}`);
+// ERROR HANDLING
+// 4 parameters in middleware, express knows to treat this as error handler
+app.use((error, req, res, next) => {
+	let response;
+	if (process.env.NODE_ENV === 'production') {
+		response = { error: { message: 'server error' } };
+	} else {
+		response = { error };
+	}
+	res.status(500).json(response);
 });
+
+// get PORT number from Heroku when hosted; when local use PORT 8000
+const PORT = process.env.PORT || 8000;
+
+app.listen(PORT, () => {});

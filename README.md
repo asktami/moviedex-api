@@ -1,5 +1,7 @@
 # moviedex-api
 
+Works with [moviedex-client](https://github.com/asktami/moviedex-client).
+
 **Requirements**
 
 Create a project called moviedex-api and initialize it as an Express app to meet the following requirements.
